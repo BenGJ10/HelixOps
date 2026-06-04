@@ -17,20 +17,3 @@ async def health_check() -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "environment": settings.ENVIRONMENT,
     }
-
-
-@router.get("/api/v1/")
-async def api_root() -> dict:
-    return {
-        "message": "HelixOps API v1",
-        "version": settings.APP_VERSION,
-        "routes": [
-            "/api/v1/auth",
-            "/api/v1/clinics",
-            "/api/v1/patients",
-            "/api/v1/appointments",
-            "/api/v1/documents",
-            "/api/v1/notifications",
-            "/api/v1/analytics",
-        ],
-    }
