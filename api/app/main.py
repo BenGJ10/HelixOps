@@ -9,8 +9,9 @@ from .core.config import settings
 from .core.exceptions import register_exception_handlers
 from .core.logging import get_logger, setup_logging
 from .routers.health import router as health_router
+from .routers.auth import router as auth_router
 
-# Initialize logging as early as possible
+# Initialize logging
 setup_logging()
 logger = get_logger(__name__)
 
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
 
     # --- Routers ---
     app.include_router(health_router)
+    app.include_router(auth_router)
 
     return app
 
