@@ -1,16 +1,12 @@
 from __future__ import annotations
-
 import traceback
-
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
 from .logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def _problem_response(
     status: int,
