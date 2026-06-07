@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from ..db.base import Base
+
+if TYPE_CHECKING:
+    from .doctor_profile import DoctorProfile
 
 # Role enum — consistent across the entire system
 # This defines the possible roles a user can have
@@ -22,8 +27,8 @@ UserRole = SAEnum(
 
 class User(Base):
     """
-        Represents a user in the system.
-        Contains details about the user's role, email, and status.          
+    Represents a user in the system.
+    Contains details about the user's role, email, and status.
     """
     __tablename__ = "users"
 
@@ -31,10 +36,20 @@ class User(Base):
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(UserRole, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # Links a clinic admin to their clinic — only set for role='admin'.
+    # Null for doctors, patients, and super_admin.
+    admin_clinic_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("clinics.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -45,9 +60,13 @@ class User(Base):
         nullable=False,
     )
 
-    # Relationships (used in later phases)
+    # Relationships
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
+    # Populated only for role='doctor'. None for all other roles.
+    doctor_profile: Mapped[Optional[DoctorProfile]] = relationship(
+        "DoctorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
@@ -56,8 +75,8 @@ class User(Base):
 
 class RefreshToken(Base):
     """
-        Represents a refresh token.
-        Contains details about the token's hash, expiration, and revocation status.
+    Represents a refresh token.
+    Contains details about the token's hash, expiration, and revocation status.
     """
     __tablename__ = "refresh_tokens"
 
@@ -73,7 +92,7 @@ class RefreshToken(Base):
     # We store the SHA-256 hash, NOT the raw token — breach protection
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
