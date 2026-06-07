@@ -10,7 +10,9 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: Literal["patient", "doctor", "admin", "super_admin"] = "patient"
+    role: Literal["patient"] = "patient"
+    # Note: doctor, admin, super_admin accounts are provisioned by clinic admins / super admin.
+    # Self-registration is restricted to patients only.
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -27,6 +29,7 @@ class UserPublic(BaseModel):
     role: str
     is_verified: bool
     is_active: bool
+    admin_clinic_id: uuid.UUID | None = None
     created_at: datetime
 
 class TokenResponse(BaseModel):

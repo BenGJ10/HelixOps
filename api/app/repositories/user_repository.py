@@ -35,6 +35,7 @@ class UserRepository:
         password_hash: str,
         role: str,
         is_verified: bool = True,
+        admin_clinic_id: uuid.UUID | None = None,
     ) -> User:
         user = User(
             email=email.lower().strip(),
@@ -42,6 +43,7 @@ class UserRepository:
             role=role,
             is_verified=is_verified,
             is_active=True,
+            admin_clinic_id=admin_clinic_id,
         )
         db.add(user)
         await db.commit()

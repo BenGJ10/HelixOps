@@ -10,6 +10,7 @@ from .core.exceptions import register_exception_handlers
 from .core.logging import get_logger, setup_logging
 from .routers.health import router as health_router
 from .routers.auth import router as auth_router
+from .routers.clinics import router as clinics_router
 
 # Initialize logging
 setup_logging()
@@ -38,7 +39,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # --- CORS ---
+    # CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.ALLOWED_ORIGINS,
@@ -47,12 +48,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # --- Exception handlers ---
+    # Exception handlers
     register_exception_handlers(app)
 
-    # --- Routers ---
+    # Routers
     app.include_router(health_router)
     app.include_router(auth_router)
+    app.include_router(clinics_router)
 
     return app
 
